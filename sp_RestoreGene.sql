@@ -160,7 +160,8 @@ December 6th, 2018  - V8.12   - Optimisation and environment setup fix - Adam
 January 12th, 2019  - V8.13   - Sequence of FROM DISK = 'Stripe' files in RESTORE command
 January 3rd, 2021   - V8.14   - Restore from Azure blog storage using FROM DISK instead of FROM URL for backup stripes - Aaron  
 January 9rd, 2021   - V8.15   - Change parameter @ExcludeDiffAndLogBackups, new option 4 to exclude full restore, return incremental diff & log restores - Mehedi Amin
-July 11th, 2021     - V8.16   - Add support for an additional 5 stripes bring the total supported to 20, Steven Dannen   
+July 11th, 2021     - V8.16   - Add support for an additional 5 stripes bring the total supported to 20, Steven Dannen  
+April 5th, 2023     - V8.2    - Masood : Bug fix restoring striped backups   
     
 *     
 ********************************************************************************************/ 
@@ -735,13 +736,13 @@ S20_pdn
             Stripe13.physical_device_name AS S13_pdn,
             Stripe14.physical_device_name AS S14_pdn,
             Stripe15.physical_device_name AS S15_pdn
---************************
-,Stripe16.physical_device_name AS S16_pdn
-,Stripe17.physical_device_name AS S17_pdn
-,Stripe18.physical_device_name AS S18_pdn
-,Stripe19.physical_device_name AS S19_pdn
-,Stripe20.physical_device_name AS S20_pdn
---************************
+            --************************
+            ,Stripe16.physical_device_name AS S16_pdn
+            ,Stripe17.physical_device_name AS S17_pdn
+            ,Stripe18.physical_device_name AS S18_pdn
+            ,Stripe19.physical_device_name AS S19_pdn
+            ,Stripe20.physical_device_name AS S20_pdn
+            --************************
         FROM #CTE AS Stripe1 
       
         LEFT OUTER JOIN #CTE AS Stripe2
@@ -813,32 +814,33 @@ S20_pdn
             ON Stripe15.database_name = Stripe1.database_name
             AND Stripe15.backupmediasetid = Stripe1.backupmediasetid
             AND Stripe15.family_sequence_number = 15
---************************
-LEFT OUTER JOIN #CTE AS Stripe16
+
+        --************************
+        LEFT OUTER JOIN #CTE AS Stripe16
             ON Stripe16.database_name = Stripe1.database_name
             AND Stripe16.backupmediasetid = Stripe1.backupmediasetid
             AND Stripe16.family_sequence_number = 16
  
-LEFT OUTER JOIN #CTE AS Stripe17
+        LEFT OUTER JOIN #CTE AS Stripe17
             ON Stripe17.database_name = Stripe1.database_name
             AND Stripe17.backupmediasetid = Stripe1.backupmediasetid
             AND Stripe17.family_sequence_number = 17
  
-LEFT OUTER JOIN #CTE AS Stripe18
+        LEFT OUTER JOIN #CTE AS Stripe18
             ON Stripe18.database_name = Stripe1.database_name
             AND Stripe18.backupmediasetid = Stripe1.backupmediasetid
             AND Stripe18.family_sequence_number = 18
  
-LEFT OUTER JOIN #CTE AS Stripe19
+        LEFT OUTER JOIN #CTE AS Stripe19
             ON Stripe19.database_name = Stripe1.database_name
             AND Stripe19.backupmediasetid = Stripe1.backupmediasetid
             AND Stripe19.family_sequence_number = 19
  
-LEFT OUTER JOIN #CTE AS Stripe20
+        LEFT OUTER JOIN #CTE AS Stripe20
             ON Stripe20.database_name = Stripe1.database_name
             AND Stripe20.backupmediasetid = Stripe1.backupmediasetid
             AND Stripe20.family_sequence_number = 20
---************************
+--      ************************
     
     ) 
       
@@ -952,21 +954,21 @@ LEFT OUTER JOIN #CTE AS Stripe20
         ELSE  ',' + CASE WHEN #Stripes.S15_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S15_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S15_pdn,LEN(#Stripes.S15_pdn) - CHARINDEX('\',REVERSE(#Stripes.S15_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S15_pdn),1) + 1) END + ''''
         END + 
  
---*******
+        --*******
  
         CASE ISNULL(#Stripes.S16_pdn,'')
         WHEN '' THEN ''
-        ELSE  ',' + CASE WHEN #Stripes.S16_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S16_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S16_pdn,LEN(#Stripes.S15_pdn) - CHARINDEX('\',REVERSE(#Stripes.S16_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S16_pdn),1) + 1) END + ''''
+        ELSE  ',' + CASE WHEN #Stripes.S16_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S16_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S16_pdn,LEN(#Stripes.S16_pdn) - CHARINDEX('\',REVERSE(#Stripes.S16_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S16_pdn),1) + 1) END + ''''
         END + 
  
         CASE ISNULL(#Stripes.S17_pdn,'')
         WHEN '' THEN ''
-        ELSE  ',' + CASE WHEN #Stripes.S17_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S17_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S15_pdn,LEN(#Stripes.S17_pdn) - CHARINDEX('\',REVERSE(#Stripes.S17_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S17_pdn),1) + 1) END + ''''
+        ELSE  ',' + CASE WHEN #Stripes.S17_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S17_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S17_pdn,LEN(#Stripes.S17_pdn) - CHARINDEX('\',REVERSE(#Stripes.S17_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S17_pdn),1) + 1) END + ''''
         END + 
  
         CASE ISNULL(#Stripes.S18_pdn,'')
         WHEN '' THEN ''
-        ELSE  ',' + CASE WHEN #Stripes.S18_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S18_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S18_pdn,LEN(#Stripes.S15_pdn) - CHARINDEX('\',REVERSE(#Stripes.S18_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S18_pdn),1) + 1) END + ''''
+        ELSE  ',' + CASE WHEN #Stripes.S18_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S18_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S18_pdn,LEN(#Stripes.S18_pdn) - CHARINDEX('\',REVERSE(#Stripes.S18_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S18_pdn),1) + 1) END + ''''
         END + 
  
         CASE ISNULL(#Stripes.S19_pdn,'')
@@ -976,9 +978,10 @@ LEFT OUTER JOIN #CTE AS Stripe20
  
         CASE ISNULL(#Stripes.S20_pdn,'')
         WHEN '' THEN ''
-        ELSE  ',' + CASE WHEN #Stripes.S20_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S20_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S20_pdn,LEN(#Stripes.S15_pdn) - CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 1) END + ''''
+        ELSE  ',' + CASE WHEN #Stripes.S20_pdn LIKE 'http%' THEN  ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileFullUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S20_pdn ELSE @FromFileFullUNC_ + SUBSTRING(#Stripes.S20_pdn,LEN(#Stripes.S20_pdn) - CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 1) END + ''''
         END + 
---******
+
+        --******
            
         ' WITH ' + 
        
@@ -1160,7 +1163,7 @@ LEFT OUTER JOIN #CTE AS Stripe20
         ELSE  ',' + CASE WHEN #Stripes.S15_pdn LIKE 'http%' THEN ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileDiffUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S15_pdn ELSE @FromFileDiffUNC_ + SUBSTRING(#Stripes.S15_pdn,LEN(#Stripes.S15_pdn) - CHARINDEX('\',REVERSE(#Stripes.S15_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S15_pdn),1) + 1) END + ''''
         END + 
  
---**************************
+        --**************************
  
         CASE ISNULL(#Stripes.S16_pdn,'')
         WHEN '' THEN ''
@@ -1191,8 +1194,7 @@ LEFT OUTER JOIN #CTE AS Stripe20
         ELSE  ',' + CASE WHEN #Stripes.S20_pdn LIKE 'http%' THEN ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileDiffUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S20_pdn ELSE @FromFileDiffUNC_ + SUBSTRING(#Stripes.S20_pdn,LEN(#Stripes.S20_pdn) - CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 1) END + ''''
         END + 
  
- 
---**************************
+        --**************************
      
         ' WITH FILE = ' + CAST(#CTE.position AS VARCHAR(5)) + ',' +
         CASE #CTE.has_backup_checksums WHEN 1 THEN 'CHECKSUM, ' ELSE ' ' END + 
@@ -1320,8 +1322,9 @@ LEFT OUTER JOIN #CTE AS Stripe20
         WHEN '' THEN ''
         ELSE  ',' + CASE WHEN #Stripes.S15_pdn LIKE 'http%' THEN ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileLogUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S15_pdn ELSE @FromFileLogUNC_ + SUBSTRING(#Stripes.S15_pdn,LEN(#Stripes.S15_pdn) - CHARINDEX('\',REVERSE(#Stripes.S15_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S15_pdn),1) + 1) END + ''''
         END + 
-  --***************
-  CASE ISNULL(#Stripes.S16_pdn,'')
+
+       --***************
+        CASE ISNULL(#Stripes.S16_pdn,'')
         WHEN '' THEN ''
         ELSE  ',' + CASE WHEN #Stripes.S16_pdn LIKE 'http%' THEN ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileLogUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S16_pdn ELSE @FromFileLogUNC_ + SUBSTRING(#Stripes.S16_pdn,LEN(#Stripes.S16_pdn) - CHARINDEX('\',REVERSE(#Stripes.S16_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S16_pdn),1) + 1) END + ''''
         END + 
@@ -1345,7 +1348,8 @@ LEFT OUTER JOIN #CTE AS Stripe20
         WHEN '' THEN ''
         ELSE  ',' + CASE WHEN #Stripes.S20_pdn LIKE 'http%' THEN ' URL = N' ELSE ' DISK = N' END + '''' + CASE ISNULL(@FromFileLogUNC_,'Actual') WHEN 'Actual' THEN #Stripes.S20_pdn ELSE @FromFileLogUNC_ + SUBSTRING(#Stripes.S20_pdn,LEN(#Stripes.S20_pdn) - CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 2,CHARINDEX('\',REVERSE(#Stripes.S20_pdn),1) + 1) END + ''''
         END + 
---***************** 
+
+        --***************** 
  
         CASE @StandbyMode_ WHEN 0 THEN ' WITH NORECOVERY,' ELSE ' WITH STANDBY =N' + '''' + ISNULL(@FromFileFullUNC_,SUBSTRING(#CTE.physical_device_name,1,LEN(#CTE.physical_device_name) - CHARINDEX('\',REVERSE(#CTE.physical_device_name)))) + '\' + d.name + '_' + REPLACE(REPLACE(SUBSTRING(CONVERT(VARCHAR(24),GETDATE(),127),12,12),':',''),'.','') + '_ROLLBACK_UNDO.bak ' + ''''  + ',' END + SPACE(1) + 
       

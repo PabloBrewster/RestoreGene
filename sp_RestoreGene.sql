@@ -3,13 +3,7 @@ GO
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_RestoreGene') 
 EXEC ('CREATE PROC dbo.sp_RestoreGene AS SELECT ''stub version, to be replaced''') 
 GO 
- 
-/*
- 
-Modified July 7, 2021 By Steven Dannen number of stripes to 20 from 15 to accommodate VLDB backup to URL
- 
-*/
-                         
+                          
 /*********************************************************************************************
 Restore Generator v8.16 (2021-07-11)
 (C) 2012, Paul Brewer

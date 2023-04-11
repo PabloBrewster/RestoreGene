@@ -5,12 +5,11 @@ EXEC ('CREATE PROC dbo.sp_RestoreGene AS SELECT ''stub version, to be replaced''
 GO 
                           
 /*********************************************************************************************
-Restore Generator v8.16 (2021-07-11)
+Restore Generator v8.3 (2022-04-11)
 (C) 2012, Paul Brewer
                          
 Feedback: paulbrewer@yahoo.co.uk
-Updates: https://paulbrewer.wordpress.com/sp_restoregene/
-User Guide: https://paulbrewer.wordpress.com/2016/08/05/restoregeneversion6/
+User Guide: https://restoregene.com
                     
 This procedure queries msdb database backup history and database file details in master.
 It builds and returns RESTORE DATABASE commands as its result set, it does not execute the commands.
@@ -156,6 +155,8 @@ January 3rd, 2021   - V8.14   - Restore from Azure blog storage using FROM DISK 
 January 9rd, 2021   - V8.15   - Change parameter @ExcludeDiffAndLogBackups, new option 4 to exclude full restore, return incremental diff & log restores - Mehedi Amin
 July 11th, 2021     - V8.16   - Add support for an additional 5 stripes bring the total supported to 20, Steven Dannen  
 April 5th, 2023     - V8.2    - Masood : Bug fix restoring striped backups   
+April 11th, 2023    - V8.3    - Aaron : Result Set Columns fix   
+
     
 *     
 ********************************************************************************************/ 
@@ -193,7 +194,7 @@ ALTER PROC [dbo].[sp_RestoreGene]
     @ExcludeDiffAndLogBackups INT = 0,
      
     -- Options to exclude device types
-    @IncludeDeviceType7 BIT = 1,
+    @IncludeDeviceType7 BIT = 0, --virtual device
     @IncludeDeviceType102 BIT = 1,
     @IncludeDeviceType2 BIT = 1,
     @IncludeDeviceType9 BIT = 1
@@ -701,13 +702,13 @@ BEGIN
         S13_pdn,
         S14_pdn,
         S15_pdn,
---************************
-S16_pdn,
-S17_pdn,
-S18_pdn,
-S19_pdn,
-S20_pdn
---************************
+        --************************
+        S16_pdn,
+        S17_pdn,
+        S18_pdn,
+        S19_pdn,
+        S20_pdn
+        --************************
     )
     AS
     (
@@ -1691,7 +1692,7 @@ S20_pdn
                     CASE @SuppressWithMove_ WHEN 0 THEN CASE ISNULL(x5.WithoveCmds,'') WHEN '' THEN x4.TSQL ELSE x4.TSQL + ' ' + x5.WithoveCmds END
                     ELSE x4.TSQL
                     END AS TSQL,
-                    x4.BackupDate, x4.BackupDevice, x4.last_lsn, x4.database_name, x4.SortSequence
+                    x4.BackupDate, x4.BackupDevice, x4.first_lsn, x4.last_lsn, x4.fork_point_lsn, x4.first_recovery_fork_guid, x4.last_recovery_fork_guid, x4.database_name, x4.SortSequence
                 FROM #RestoreGeneResults x4
                 LEFT OUTER JOIN WithMoves x5
                     ON x4.last_lsn = x5.last_lsn

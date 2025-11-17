@@ -1,9 +1,9 @@
 USE [master] 
 GO 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_RestoreGene') 
-EXEC ('CREATE PROC dbo.sp_RestoreGene AS SELECT ''stub version, to be replaced''') 
-GO 
-                          
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_RestoreGene')
+EXEC ('CREATE PROC dbo.sp_RestoreGene AS SELECT ''stub version, to be replaced''')
+GO
+
 /*********************************************************************************************
 Restore Generator v8.3 (2022-04-11)
 (C) 2012, Paul Brewer
@@ -111,7 +111,7 @@ August 9th, 2016    - V5.9 - New Parameter, suppress WITH MOVE statements is def
 August 13th, 2016    - V6.0
                             - Add parameter option to pivot WITH MOVE secondary files to a new result set line. Not compatible with PoSh driver, useful with large, complex databases. 
                             - Add a parameter option to include just the restore script in the result set. Not compatible with PoSh driver, useful as SQL Agent Job step output.
-       
+
 August 14th, 2016    - V6.1 - Remove parameter @UseDefaultDatabaseBackupPath , no longer used  
 August 15th, 2016    - V6.2 - @TargetDatabase parameter, file rename tidy  
 August 17th, 2016    - V6.3 - Edge case fix to fork point LSN
@@ -122,45 +122,45 @@ September 9th, 2016  - V6.43 - Fix for mirrored backups, C.Richardson
 September 9th, 2016  - V6.44 - Mod to log file LSN selection, include if matches diff, R.Devries 
 September 30th, 2016 - V6.45 - Improvements to the output generated when @RestoreScriptOnly = 1, John Lee
 September 30th, 2016 - V6.5  - New 'Drop Database After Restore' parameter for use with CHECKDB and automated backup verification, John Lee
-     
+
 November 5th, 2016  - V6.51  - Increase length of @Database parameter to allow for more comma seperated database names
 November 5th, 2016  - V6.52  - Edge case log exclusion criteria mod, R.Devries 
 November 5th, 2016  - V6.53  - New parameter option to include ALTER DATABASE @database SET SINGLE_USER WITH ROLLBACK IMMEDIATE, Hakan Ekman
 November 5th, 2016  - V6.54  - New parameter option to exclude differential and log backups (presumaby for development environment refreshes), Mehedi Amin
-     
+
 November 19th, 2016 - V6.55  - Remove semi colon from start of T-SQL restore command strings, serves no purpose
 November 19th, 2016 - V6.56  - Remove variable declare, log reference and RAISERROR, serves no purpose and generates an error in edge cases ( my_database and my-database ), Lars Rasmussen
-November 19th, 2016 - V6.57  - Parameters options for device types to include, Lars Rasmussen 
-     
+November 19th, 2016 - V6.57  - Parameters options for device types to include, Lars Rasmussen
+
 December 3rd, 2016  - V6.58  - Remove TIME function from STANDBY mode file name construct, for SQL Server 2005 compatibility, Erwin Louwerse
 March 26th, 2017    - V6.59  - Significant performance improvements where an instance has many databases, Simone Bizzotto
-     
-June 24th, 2017     - V6.70   - Case Sensitive Collation Database Compatibility - M.Pollock 
+
+June 24th, 2017     - V6.70   - Case Sensitive Collation Database Compatibility - M.Pollock
 September 9th, 2017 - V6.71   - Device Type filter fix, LostInEurope01
 November 11th, 2017 - V6.72   - Mod to log file selection, R.Devries
                               - Increase @Databases variable length, Bob
 Febuary 14th, 2018  - V6.73   - Add escape characters to database name in SET SINGLE_USER, Rod
-Febuary 16th, 2018  - V7.0    - Increase support for stripped backup files from 10 to 15, Mehedi 
-Febuary 17th, 2018  - V8.0    - Extensive changes to the backup fork handling, Mike 
+Febuary 16th, 2018  - V7.0    - Increase support for stripped backup files from 10 to 15, Mehedi
+Febuary 17th, 2018  - V8.0    - Extensive changes to the backup fork handling, Mike
 March 30th, 2018    - V8.04   - Code refactor
 May 25th, 2018      - V8.05   - Missing exclusion of copy only backups reintroduced - Andy
 August 25th, 2018   - V8.10   - Enhancements to the @ExcludeDiffAndLogBackups parameters, Bob and Chris F
                               - Change from parameter data type from bit to int
-                              - 0 (default) = full, diff and logs, 1 = full only, 2 = full and diff, 3 = full and logs 
+                              - 0 (default) = full, diff and logs, 1 = full only, 2 = full and diff, 3 = full and logs
                               - Existing BIT data type functionality retained and extended by new values 2 and 3.
 November 8th, 2018  - V8.11   - Bug fix to last log file - Mike
 December 6th, 2018  - V8.12   - Optimisation and environment setup fix - Adam
 January 12th, 2019  - V8.13   - Sequence of FROM DISK = 'Stripe' files in RESTORE command
-January 3rd, 2021   - V8.14   - Restore from Azure blog storage using FROM DISK instead of FROM URL for backup stripes - Aaron  
+January 3rd, 2021   - V8.14   - Restore from Azure blog storage using FROM DISK instead of FROM URL for backup stripes - Aaron
 January 9rd, 2021   - V8.15   - Change parameter @ExcludeDiffAndLogBackups, new option 4 to exclude full restore, return incremental diff & log restores - Mehedi Amin
-July 11th, 2021     - V8.16   - Add support for an additional 5 stripes bring the total supported to 20, Steven Dannen  
-April 5th, 2023     - V8.2    - Masood : Bug fix restoring striped backups   
-April 11th, 2023    - V8.3    - Aaron : Result Set Columns fix   
+July 11th, 2021     - V8.16   - Add support for an additional 5 stripes bring the total supported to 20, Steven Dannen
+April 5th, 2023     - V8.2    - Masood : Bug fix restoring striped backups
+April 11th, 2023    - V8.3    - Aaron : Result Set Columns fix
+November 17th, 2025 - V8.4    - Orestes Zoupanos: fix errors for Unicode database names when generating DBCC CHECKDB statements
 
-    
-*     
-********************************************************************************************/ 
-                                    
+*
+********************************************************************************************/
+
 ALTER PROC [dbo].[sp_RestoreGene]
 (
     @Database VARCHAR(MAX) = NULL,
@@ -177,7 +177,7 @@ ALTER PROC [dbo].[sp_RestoreGene]
     @WithRecovery BIT = 0,
     @WithCHECKDB BIT = 0,
     @WithReplace BIT = 0,
-      
+
     -- Parameters for PowerShell script use only
     @LogShippingStartTime DATETIME = NULL,
     @LogShippingLastLSN VARCHAR(25) = NULL,
@@ -869,7 +869,7 @@ BEGIN
       
     SELECT
     
-        'RESTORE DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + CHAR(13) + 
+        N'RESTORE DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + CHAR(13) + 
       
         CASE WHEN #CTE.physical_device_name LIKE 'http%' THEN  ' FROM URL = N' ELSE ' FROM DISK = N' END + '''' + --Support restore from blob storage in Azure
       
@@ -1079,7 +1079,7 @@ BEGIN
       
     SELECT
     
-        'RESTORE DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + CHAR(13) +
+        N'RESTORE DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + CHAR(13) +
         CASE WHEN #CTE.physical_device_name LIKE 'http%' THEN ' FROM URL = N' ELSE ' FROM DISK = N' END + '''' +
       
         CASE ISNULL(@FromFileDiffUNC_,'Actual')
@@ -1238,7 +1238,7 @@ BEGIN
       
     SELECT
     
-        'RESTORE LOG [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + CHAR(13) + 
+        N'RESTORE LOG [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + CHAR(13) + 
       
         CASE WHEN #CTE.physical_device_name LIKE 'http%' THEN ' FROM URL = N' ELSE ' FROM DISK = N' END + '''' +
       
@@ -1404,7 +1404,7 @@ BEGIN
     --------------------------------------------------------------
     SELECT
     
-       'BEGIN TRY ALTER DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + ' SET SINGLE_USER WITH ROLLBACK IMMEDIATE END TRY BEGIN CATCH PRINT' + '''' + 'SET SINGLE USER FAILED' + '''' + ' END CATCH' AS Command,
+       N'BEGIN TRY ALTER DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + ' SET SINGLE_USER WITH ROLLBACK IMMEDIATE END TRY BEGIN CATCH PRINT' + '''' + 'SET SINGLE USER FAILED' + '''' + ' END CATCH' AS Command,
         0 AS Sequence,
         d.name AS database_name,
         '' AS BackupDevice,
@@ -1433,7 +1433,7 @@ BEGIN
     --------------------------------------------------------------
     SELECT
     
-       'RESTORE DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + 'WITH RECOVERY' AS Command,
+       N'RESTORE DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) + 'WITH RECOVERY' AS Command,
         1000001 AS Sequence,
         d.name AS database_name,
         '' AS BackupDevice,
@@ -1461,8 +1461,7 @@ BEGIN
     UNION -- CHECKDB
     --------------------------------------------------------------
     SELECT
-    
-        'DBCC CHECKDB(' + '''' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + '''' + ') WITH NO_INFOMSGS, ALL_ERRORMSGS' AS Command,
+        N'DBCC CHECKDB(N''' + CASE ISNULL(@TargetDatabase_,N'') WHEN N'' THEN d.[name] ELSE @TargetDatabase_ END + N''') WITH NO_INFOMSGS, ALL_ERRORMSGS' AS Command,
         1000002 AS Sequence,
         d.name AS database_name,
         '' AS BackupDevice,
@@ -1495,7 +1494,7 @@ BEGIN
         -- Comment out all commands if multiple forking points exist 
         --CASE WHEN @CommentOut = 1 THEN '  -- Multipe backup fork points detected, command suppressed -- ' ELSE '' END +
     
-       'DROP DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) AS Command,
+       N'DROP DATABASE [' + CASE ISNULL(@TargetDatabase_,'') WHEN '' THEN d.[name] ELSE @TargetDatabase_ END + ']' + SPACE(1) AS Command,
         1000003 AS Sequence,
         d.name AS database_name,
         '' AS BackupDevice,
@@ -1729,5 +1728,4 @@ BEGIN
         END
     END
 END
-      
 GO

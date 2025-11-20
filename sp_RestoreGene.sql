@@ -5,7 +5,7 @@ EXEC ('CREATE PROC dbo.sp_RestoreGene AS SELECT ''stub version, to be replaced''
 GO
 
 /*********************************************************************************************
-Restore Generator v8.3 (2022-04-11)
+Restore Generator v8.4 (2025-11-20)
 (C) 2012, Paul Brewer
                          
 Feedback: paulbrewer@yahoo.co.uk
